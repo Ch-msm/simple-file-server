@@ -2,12 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>上传文件</title>
+  <title>文件列表</title>
 </head>
+<script>
+  window.Ajax = {
+    get: function (url, fn) {
+      // XMLHttpRequest对象用于在后台与服务器交换数据
+      let xhr = new XMLHttpRequest();
+      xhr.open('GET', url, false);
+      xhr.onreadystatechange = function () {
+        // readyState == 4说明请求已完成
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200 || xhr.status === 304) {
+            fn(xhr.responseText);
+          }
+        }
+      }
+      xhr.send();
+    },
+    // data应为'a=a1&b=b1'这种字符串格式，在jq里如果data为对象会自动将对象转成这种字符串格式
+    post: function (url, data, fn) {
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', url, false);
+      // 添加http头，发送信息至服务器时内容编码类型
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200 || xhr.status === 304) {
+            // console.log(xhr.responseText);
+            fn(xhr.responseText);
+          }
+        }
+      }
+      xhr.send(data);
+    }
+  }
+</script>
 <body>
-<form action="/upload" enctype="multipart/form-data" method="post" style="text-align: center;margin-top: 300px;">
-  <input name="file" type="file"/>
-  <input type="submit" value="上传">
-</form>
+<h3>资源路径 /file/</h3>
+<hr>
+<table style="width: 60%;font-size: 14px;">
+  <thead style="font-weight: bold">
+  <tr>
+    <td>文件名称</td>
+    <td>文件大小(KB)</td>
+    <td>最后修改时间</td>
+  </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+<hr>
 </body>
+<script>
+  window.Ajax.get(location.origin + '/list', data => {
+    data = JSON.parse(data);
+    let tbody = document.getElementsByTagName('tbody');
+    for (let o of data) {
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+       <td><a download="${o[0]}" href="${location.origin + '/file/' + o[0]}">${o[0]}</a></td>
+       <td>${((+o[1])/1024).toFixed(0)}</td>
+       <td>${o[2]}</td>
+       `;
+      tbody.item(0).appendChild(tr);
+    }
+  })
+</script>
 </html>
