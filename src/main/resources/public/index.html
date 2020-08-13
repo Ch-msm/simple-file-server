@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <title>文件列表</title>
 </head>
+<style>
+  tbody > tr:hover {
+    background-color: rgba(255, 228, 196, 0.53);
+  }
+
+  tbody > tr > td:last-child {
+    cursor: pointer;
+  }
+</style>
 <script>
   window.Ajax = {
     get: function (url, fn) {
@@ -41,12 +50,13 @@
 <body>
 <h3>资源路径 /file/</h3>
 <hr>
-<table style="width: 60%;font-size: 14px;">
+<table style="width: 60%;font-size: 14px;" cellspacing="0">
   <thead style="font-weight: bold">
   <tr>
     <td>文件名称</td>
     <td>文件大小(KB)</td>
     <td>最后修改时间</td>
+    <td>删除</td>
   </tr>
   </thead>
   <tbody>
@@ -62,9 +72,18 @@
       let tr = document.createElement('tr');
       tr.innerHTML = `
        <td><a download="${o[0]}" href="${location.origin + '/file/' + o[0]}">${o[0]}</a></td>
-       <td>${((+o[1])/1024).toFixed(0)}</td>
+       <td>${((+o[1]) / 1024).toFixed(0)}</td>
        <td>${o[2]}</td>
        `;
+      let del = document.createElement('td');
+      del.title = '删除此文件';
+      del.innerHTML = "&#10006;";
+      del.addEventListener('click', e => {
+        Ajax.get(location.origin + '/delete/' + o[0], () => {
+          e.target['parentElement'].remove();
+        });
+      });
+      tr.appendChild(del);
       tbody.item(0).appendChild(tr);
     }
   })

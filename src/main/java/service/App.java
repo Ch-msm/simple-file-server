@@ -5,15 +5,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.websocket.server.PathParam;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @author msm
  */
-@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
+@SpringBootApplication(exclude = {WebMvcAutoConfiguration.class})
 @Controller
 public class App implements WebMvcConfigurer {
   private static final Logger L = LogManager.getLogger("文件服务");
@@ -102,6 +101,20 @@ public class App implements WebMvcConfigurer {
       L.catching(e);
     }
     return null;
+  }
+
+  @RequestMapping(value = "delete/{name}", method = RequestMethod.GET)
+  @ResponseBody
+  public String delete(@PathVariable("name") String name) {
+    L.info("删除文件:{}", name);
+    try {
+      Path path = Paths.get(App.path.toAbsolutePath().toString(), name);
+      Files.deleteIfExists(path);
+    } catch (IOException e) {
+      L.catching(e);
+      return "删除失败";
+    }
+    return "删除成功";
   }
 
 }
