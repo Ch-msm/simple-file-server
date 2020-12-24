@@ -4,8 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,11 +22,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 文件服务
@@ -36,7 +31,7 @@ import java.util.stream.Stream;
  *
  * @author msm
  */
-@SpringBootApplication(exclude = {WebMvcAutoConfiguration.class})
+@SpringBootApplication
 @Controller
 public class App implements WebMvcConfigurer {
   private static final Logger L = LogManager.getLogger("文件服务");
@@ -53,6 +48,8 @@ public class App implements WebMvcConfigurer {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/file/**").addResourceLocations(
+        path.toUri().toString());
+    registry.addResourceHandler("/file/dir/**").addResourceLocations(
         path.toUri().toString());
   }
 
@@ -76,9 +73,12 @@ public class App implements WebMvcConfigurer {
 
   @RequestMapping(value = "list", method = RequestMethod.GET)
   @ResponseBody
-  public List<List<String>> fileList() {
+  public List<List<String>> fileList(@PathParam("url") String url) {
     try {
-      return Files.list(path).map(o -> {
+      L.info(url);
+
+
+      return Files.list(Paths.get(path.toString(), url)).map(o -> {
         List<String> arr = new ArrayList<>();
         try {
           File file = o.toFile();
@@ -92,6 +92,7 @@ public class App implements WebMvcConfigurer {
           arr.add(name);
           arr.add(size + "");
           arr.add(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+          arr.add(Files.isDirectory(o) ? "目录" : "文件");
         } catch (IOException e) {
           e.printStackTrace();
         }

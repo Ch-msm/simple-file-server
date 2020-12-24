@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>文件列表</title>
+  <script src="index.js"></script>
 </head>
 <style>
   tbody > tr:hover {
@@ -56,7 +57,7 @@
     <td>文件名称</td>
     <td>文件大小(KB)</td>
     <td>最后修改时间</td>
-    <td>删除</td>
+    <td>操作</td>
   </tr>
   </thead>
   <tbody>
@@ -65,8 +66,8 @@
 <hr>
 </body>
 <script>
-  window.Ajax.get(location.origin + '/list', data => {
-    data = JSON.parse(data);
+
+  Y.get('list?url=', data => {
     let tbody = document.getElementsByTagName('tbody');
     for (let o of data) {
       let tr = document.createElement('tr');
