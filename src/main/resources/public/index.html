@@ -3,90 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>文件列表</title>
+  <link href="index.css" rel="stylesheet">
   <script src="index.js"></script>
 </head>
-<style>
-  tbody > tr:hover {
-    background-color: rgba(255, 228, 196, 0.53);
-  }
-
-  tbody > tr > td:last-child {
-    cursor: pointer;
-  }
-</style>
-<script>
-  window.Ajax = {
-    get: function (url, fn) {
-      // XMLHttpRequest对象用于在后台与服务器交换数据
-      let xhr = new XMLHttpRequest();
-      xhr.open('GET', url, false);
-      xhr.onreadystatechange = function () {
-        // readyState == 4说明请求已完成
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200 || xhr.status === 304) {
-            fn(xhr.responseText);
-          }
-        }
-      }
-      xhr.send();
-    },
-    // data应为'a=a1&b=b1'这种字符串格式，在jq里如果data为对象会自动将对象转成这种字符串格式
-    post: function (url, data, fn) {
-      let xhr = new XMLHttpRequest();
-      xhr.open('POST', url, false);
-      // 添加http头，发送信息至服务器时内容编码类型
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200 || xhr.status === 304) {
-            // console.log(xhr.responseText);
-            fn(xhr.responseText);
-          }
-        }
-      }
-      xhr.send(data);
-    }
-  }
-</script>
-<body>
-<h3>资源路径 /file/</h3>
+<body id="body" ondragenter="event.stopPropagation(); event.preventDefault();"
+      ondragover="event.stopPropagation(); event.preventDefault();"
+      onload="Y.init()">
+<h3>资源路径 /file/<span data-name="资源路径"></span></h3>
 <hr>
-<table style="width: 60%;font-size: 14px;" cellspacing="0">
-  <thead style="font-weight: bold">
+<table id="file_list">
+  <thead>
   <tr>
     <td>文件名称</td>
-    <td>文件大小(KB)</td>
-    <td>最后修改时间</td>
-    <td>操作</td>
+    <td>文件大小</td>
+    <td>上传时间</td>
+    <td>文件类型</td>
+    <td>进度条</td>
+    <td>当前速度</td>
+    <td>剩余时间</td>
   </tr>
   </thead>
   <tbody>
   </tbody>
 </table>
 <hr>
+<div id="menu">
+  <div onclick="Menu.download()">下载</div>
+  <div>复制下载链接</div>
+  <div>扫码下载</div>
+  <div>上传文件</div>
+  <div onclick="Menu.mkdir()">新建文件夹</div>
+  <div onclick="Menu.download()">删除</div>
+</div>
 </body>
-<script>
-
-  Y.get('list?url=', data => {
-    let tbody = document.getElementsByTagName('tbody');
-    for (let o of data) {
-      let tr = document.createElement('tr');
-      tr.innerHTML = `
-       <td><a download="${o[0]}" href="${location.origin + '/file/' + o[0]}">${o[0]}</a></td>
-       <td>${((+o[1]) / 1024).toFixed(0)}</td>
-       <td>${o[2]}</td>
-       `;
-      let del = document.createElement('td');
-      del.title = '删除此文件';
-      del.innerHTML = "&#10006;";
-      del.addEventListener('click', e => {
-        Ajax.get(location.origin + '/delete/' + o[0], () => {
-          e.target['parentElement'].remove();
-        });
-      });
-      tr.appendChild(del);
-      tbody.item(0).appendChild(tr);
-    }
-  })
-</script>
 </html>
