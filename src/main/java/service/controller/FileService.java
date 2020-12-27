@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import service.bean.FileBean;
 
 import javax.websocket.server.PathParam;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -34,20 +35,12 @@ public class FileService {
   private static final Logger L = LogManager.getLogger("文件服务");
   public static Path source;
 
-  @RequestMapping(value = "upload", method = RequestMethod.POST)
-  @ResponseBody
-  public String upload(FileBean fileBean) {
-    L.info("上传文件:{}", fileBean.getName());
-    try {
-      Path newFile = Files.createFile(
-          Paths.get(source.toAbsolutePath().toString(), fileBean.getId())
-      );
-      fileBean.getFile().transferTo(newFile);
-    } catch (Exception e) {
-      L.catching(e);
-      return "上传失败";
-    }
-    return "上传成功";
+  public static File multipartFileToFile(MultipartFile file) throws Exception {
+    InputStream ins = file.getInputStream();
+    File toFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
+    inputStreamToFile(ins, toFile);
+    ins.close();
+    return toFile;
   }
 
   @RequestMapping("mkdir")
@@ -148,5 +141,34 @@ public class FileService {
     } else {
       initSize[0] += Files.size(path);
     }
+  }
+
+  public static void inputStreamToFile(InputStream ins, File file) {
+    try {
+      OutputStream os = new FileOutputStream(file);
+      int bytesRead = 0;
+      byte[] buffer = new byte[8192];
+      while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+        os.write(buffer, 0, bytesRead);
+      }
+      os.close();
+      ins.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @RequestMapping(value = "upload", method = RequestMethod.POST)
+  @ResponseBody
+  public String upload(FileBean fileBean) {
+    L.info("上传文件:{}", fileBean.getName());
+    try {
+      Path file = Paths.get(source.toAbsolutePath().toString(), fileBean.getId());
+      Files.copy(fileBean.getFile().getInputStream(), file);
+    } catch (Exception e) {
+      L.catching(e);
+      return "上传失败";
+    }
+    return "上传成功";
   }
 }

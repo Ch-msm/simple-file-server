@@ -124,7 +124,6 @@ public class FileBean implements java.io.Serializable {
   public void setSuffix(String suffix) {
     this.suffix = suffix;
   }
-
   public MultipartFile getFile() {
     return file;
   }
